@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+}
+
+.btn-pill {
+  @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.btn-primary {
+  @apply btn-pill bg-ink text-cream hover:bg-black;
+}
+
+.btn-accent {
+  @apply btn-pill bg-accent text-white hover:bg-accent-dark;
+}
+
+.btn-ghost {
+  @apply btn-pill border border-ink/15 bg-white text-ink hover:bg-ink/5;
+}
+
+.card {
+  @apply rounded-xl2 border border-ink/10 bg-white;
+}
+
+.badge {
+  @apply inline-flex items-center rounded-full bg-accent-light px-3 py-1 text-xs font-bold uppercase tracking-wide text-accent-dark;
+}

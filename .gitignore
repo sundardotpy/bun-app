@@ -111,3 +111,15 @@ dist
 
 # TernJS port file
 .tern-port
+
+# Built frontend (generated in Docker image)
+/public
+
+# Docker — local-only / generated artifacts
+# NOTE: Dockerfile, .dockerignore and render.yaml stay committed so Render can build.
+docker-compose.yml
+docker-compose.override.yml
+docker-compose.*.local.yml
+*.local.yml
+.docker/
+docker-data/

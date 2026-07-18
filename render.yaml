@@ -1,0 +1,23 @@
+# Render blueprint. In Render: New > Blueprint, point at this repo.
+# Set the secret values (DATABASE_URL, ADMIN_PASSWORD) in the dashboard.
+services:
+  - type: web
+    name: report-downloader
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    healthCheckPath: /api/health
+    envVars:
+      # Supabase connection string incl. password — set in dashboard, not committed.
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_SSL
+        value: require
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_USERNAME
+        value: kitten
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: NODE_ENV
+        value: production
