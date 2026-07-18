@@ -1,23 +1,22 @@
-# Render blueprint. In Render: New > Blueprint, point at this repo.
-# Set the secret values (DATABASE_URL, ADMIN_PASSWORD) in the dashboard.
+# Render blueprint — native Bun web service (no Docker).
+# Render's Node runtime includes Bun, so `bun` is available for build & start.
+# In Render: New > Blueprint, point at this repo, then set WINTWEALTH_AUTH_TOKEN.
 services:
   - type: web
     name: report-downloader
-    runtime: docker
-    dockerfilePath: ./Dockerfile
-    plan: starter
+    runtime: node
+    plan: free
+    buildCommand: bun install && bun run build
+    startCommand: bun run start
     healthCheckPath: /api/health
     envVars:
-      # Supabase connection string incl. password — set in dashboard, not committed.
-      - key: DATABASE_URL
+      # Report API auth token (X-AUTH-TOKEN) — set in dashboard, not committed.
+      - key: WINTWEALTH_AUTH_TOKEN
         sync: false
-      - key: DATABASE_SSL
-        value: require
-      - key: JWT_SECRET
-        generateValue: true
-      - key: ADMIN_USERNAME
-        value: kitten
-      - key: ADMIN_PASSWORD
-        sync: false
+      # Optional overrides (defaults: agentId 333, host below).
+      - key: AGENT_ID
+        value: "333"
+      - key: WINTWEALTH_BASE_URL
+        value: https://elb.api.wintwealth.com
       - key: NODE_ENV
         value: production

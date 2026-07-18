@@ -1,4 +1,4 @@
-import { getEndpoint } from "../db";
+import { getEndpoint } from "../config";
 import type { ReportType } from "../types";
 
 const REPORT_TYPE_TO_ENDPOINT_ID: Record<ReportType, string> = {
@@ -6,9 +6,9 @@ const REPORT_TYPE_TO_ENDPOINT_ID: Record<ReportType, string> = {
   taxation: "taxation-report",
 };
 
-export async function buildRequest(reportType: ReportType, userId: string) {
+export function buildRequest(reportType: ReportType, userId: string) {
   const endpointId = REPORT_TYPE_TO_ENDPOINT_ID[reportType];
-  const endpoint = await getEndpoint(endpointId);
+  const endpoint = getEndpoint(endpointId);
   if (!endpoint) {
     throw new Error(`No API collection entry configured for "${reportType}"`);
   }

@@ -112,14 +112,13 @@ dist
 # TernJS port file
 .tern-port
 
-# Built frontend (generated in Docker image)
+# Built frontend (generated at build time, served from /public)
 /public
 
-# Docker — local-only / generated artifacts
-# NOTE: Dockerfile, .dockerignore and render.yaml stay committed so Render can build.
+# Docker — not used for deploy (native Bun app); keep out of git
+Dockerfile
+.dockerignore
 docker-compose.yml
 docker-compose.override.yml
-docker-compose.*.local.yml
 *.local.yml
-.docker/
-docker-data/
+

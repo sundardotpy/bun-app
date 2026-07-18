@@ -4,7 +4,7 @@ import type { GenerateReportResult, ReportType } from "../types";
 export async function generateReport(reportType: ReportType, userId: string): Promise<GenerateReportResult> {
   let request;
   try {
-    request = await buildRequest(reportType, userId);
+    request = buildRequest(reportType, userId);
   } catch {
     return { success: false, message: "This report type is not configured yet." };
   }
