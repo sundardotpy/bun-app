@@ -79,36 +79,3 @@ export function triggerDownload(url: string, filename: string): void {
   anchor.click();
   anchor.remove();
 }
-
-// ---- Account actions (modifications / resets) ----
-export interface ActionField {
-  name: string;
-  label: string;
-  type: "number" | "string";
-  placeholder?: string;
-  default?: string;
-}
-
-export interface ActionDescriptor {
-  id: string;
-  name: string;
-  danger: boolean;
-  fields: ActionField[];
-}
-
-export interface ActionResult {
-  success: boolean;
-  status?: number;
-  message: string;
-}
-
-export function listActions() {
-  return request<{ actions: ActionDescriptor[] }>("/actions");
-}
-
-export function executeAction(id: string, fields: Record<string, string>) {
-  return request<ActionResult>(`/actions/${encodeURIComponent(id)}`, {
-    method: "POST",
-    body: JSON.stringify({ fields }),
-  });
-}

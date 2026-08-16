@@ -3,7 +3,6 @@ import Header from "../components/Header";
 import ReportForm from "../components/ReportForm";
 import ResultPanel from "../components/ResultPanel";
 import HistoryList from "../components/HistoryList";
-import ActionsPanel from "../components/ActionsPanel";
 import Toast from "../components/Toast";
 import { useToast } from "../hooks/useToast";
 import { getHistory, HistoryEntry } from "../lib/history";
@@ -25,7 +24,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-cream">
       <Header />
-      <main className="mx-auto max-w-3xl px-6 py-12 sm:px-10">
+      <main className="mx-auto max-w-2xl px-6 py-12 sm:px-10">
         <span className="badge mb-4">Report Library</span>
         <h1 className="mb-2 text-4xl font-black tracking-tight">Download reports</h1>
         <p className="mb-8 text-sm text-ink/60">
@@ -34,7 +33,6 @@ export default function Home() {
         <ReportForm onResult={handleResult} onToast={showToast} />
         <ResultPanel entry={lastResult} onToast={showToast} />
         <HistoryList entries={history} onToast={showToast} />
-        <ActionsPanel onToast={showToast} />
       </main>
       <Toast message={toastMessage} />
     </div>

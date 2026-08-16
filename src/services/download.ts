@@ -6,7 +6,6 @@
 // before we fetch it — otherwise this endpoint would be an open proxy (SSRF).
 
 const BASE_URL = process.env.WINTWEALTH_BASE_URL || "https://elb.api.wintwealth.com";
-const API_URL = process.env.WINTWEALTH_API_URL || "https://api.wintwealth.com";
 
 function hostOf(raw: string): string | null {
   try {
@@ -27,7 +26,6 @@ function allowedHosts(): string[] {
     "wintwealth.com",
     "amazonaws.com",
     hostOf(BASE_URL),
-    hostOf(API_URL),
     ...extra,
   ].filter((h): h is string => Boolean(h));
 }

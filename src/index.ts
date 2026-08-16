@@ -1,8 +1,7 @@
 import { join, normalize } from "node:path";
 import { generateReport } from "./services/proxy";
-import { listPublicActions, executeAction } from "./actions";
 import { fetchReportFile, parseDownloadUrl, safeFilename } from "./services/download";
-import { parseActionInput, parseGenerateInput } from "./validate";
+import { parseGenerateInput } from "./validate";
 import { json, readJson } from "./http";
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
@@ -15,15 +14,6 @@ async function reportsGenerate(req: Request): Promise<Response> {
   }
   const { reportType, userId } = parsed.value;
   return json(await generateReport(reportType, userId));
-}
-
-async function actionExecute(req: Request, id: string): Promise<Response> {
-  const parsed = parseActionInput(await readJson(req));
-  if (!parsed.ok) {
-    return json({ success: false, message: parsed.message }, { status: 400 });
-  }
-  const result = await executeAction(id, parsed.value);
-  return json(result, { status: result.success ? 200 : result.status && result.status >= 400 ? result.status : 400 });
 }
 
 // Mirrors api/download.ts so local dev behaves like the Vercel deployment.
@@ -66,15 +56,10 @@ async function handleApi(req: Request, url: URL, method: string): Promise<Respon
       status: "ok",
       runtime: "bun",
       reportsTokenConfigured: Boolean(process.env.WINTWEALTH_AUTH_TOKEN),
-      adminTokenConfigured: Boolean(process.env.WINTWEALTH_ADMIN_TOKEN || process.env.WINTWEALTH_AUTH_TOKEN),
     });
   }
   if (pathname === "/api/reports/generate" && method === "POST") return reportsGenerate(req);
   if (pathname === "/api/download" && method === "GET") return reportDownload(url);
-  if (pathname === "/api/actions" && method === "GET") return json({ actions: listPublicActions() });
-
-  const actionMatch = pathname.match(/^\/api\/actions\/([^/]+)$/);
-  if (actionMatch && method === "POST") return actionExecute(req, decodeURIComponent(actionMatch[1]));
 
   return json({ success: false, message: "Not found" }, { status: 404 });
 }
