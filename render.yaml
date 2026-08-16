@@ -10,8 +10,11 @@ services:
     startCommand: bun run start
     healthCheckPath: /api/health
     envVars:
-      # Report API auth token (X-AUTH-TOKEN) — set in dashboard, not committed.
+      # Reports auth token (X-AUTH-TOKEN) — set in dashboard, not committed.
       - key: WINTWEALTH_AUTH_TOKEN
+        sync: false
+      # Account actions use a SEPARATE token from reports.
+      - key: WINTWEALTH_ADMIN_TOKEN
         sync: false
       # Optional overrides (defaults: agentId 333, host below).
       - key: AGENT_ID

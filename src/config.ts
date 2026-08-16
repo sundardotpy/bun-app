@@ -1,8 +1,9 @@
 import type { ApiEndpointRecord } from "./types";
 
-// Report API config comes from environment variables (set them in Render).
+// Report API config comes from environment variables (set them in Render / .env).
 // There's no database and no admin UI — env vars are the single source of truth.
-const TOKEN = process.env.WINTWEALTH_AUTH_TOKEN || "yhojirGToF0t2EdUdO-XFA";
+// No token is hardcoded so the repo carries no secrets; set WINTWEALTH_AUTH_TOKEN.
+const TOKEN = process.env.WINTWEALTH_AUTH_TOKEN || "";
 const AGENT_ID = process.env.AGENT_ID || "333";
 const BASE_URL = process.env.WINTWEALTH_BASE_URL || "https://elb.api.wintwealth.com";
 

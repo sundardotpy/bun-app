@@ -12,7 +12,7 @@ export default function Header() {
           />
         </svg>
       </div>
-      <span className="text-lg font-extrabold tracking-tight">Report Downloader</span>
+      <span className="text-lg font-extrabold tracking-tight">CX User Operations</span>
     </header>
   );
 }
