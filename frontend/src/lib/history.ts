@@ -5,6 +5,7 @@ export interface HistoryEntry {
   status: "success" | "error" | "account_deletion";
   message: string;
   downloadUrl?: string;
+  filename?: string;
   timestamp: string;
 }
 

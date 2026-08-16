@@ -1,21 +1,27 @@
-# Report Downloader (Bun)
+# Report Downloader
 
-Enter a user ID, pull the Master or Taxation report as an Excel file. The Bun
-server proxies the internal WintWealth API server-side (so the host and
-`X-AUTH-TOKEN` never reach the browser) and returns a signed S3 link the browser
-downloads directly. Recent requests are kept in the browser (localStorage).
+Enter a user ID, pull the Master or Taxation report as an Excel file. The server
+proxies the internal WintWealth API server-side (so the host and `X-AUTH-TOKEN`
+never reach the browser), then streams the resulting file back through
+`/api/download` so it saves as an attachment the moment the API responds.
+Recent requests are kept in the browser (localStorage).
 
-- **Runtime:** [Bun](https://bun.sh) `Bun.serve` — one process serves the API and the built React frontend.
-- **Config:** no database, no admin login — report config (token, agentId, base URL) comes from environment variables.
-- **Frontend:** React + Vite + Tailwind, built to static files served from `/public`.
-- **Deploy target:** Render (native Bun, no Docker).
+- **Frontend:** React + Vite + Tailwind.
+- **Config:** no database, no admin login — tokens, agentId and base URLs come from environment variables.
+- **Deploy targets:** Vercel (serverless functions in `api/`) *or* Render / local (single Bun process in `src/`).
+
+Both deployments share the same logic in `src/` — `src/index.ts` is the Bun
+entrypoint, `api/*.ts` are thin Vercel wrappers around the same modules.
 
 ## Endpoints
 
-| Method | Path                    | Purpose                              |
-| ------ | ----------------------- | ------------------------------------ |
-| POST   | `/api/reports/generate` | Proxy report request, return S3 link |
-| GET    | `/api/health`           | Health check (Render probe)          |
+| Method | Path                    | Purpose                                              |
+| ------ | ----------------------- | ---------------------------------------------------- |
+| POST   | `/api/reports/generate` | Proxy report request, return the file link           |
+| GET    | `/api/download`         | Stream that link back as an `attachment` download    |
+| GET    | `/api/actions`          | List account actions (metadata only — no URLs/token) |
+| POST   | `/api/actions/:id`      | Run an account action                                |
+| GET    | `/api/health`           | Health check + whether tokens are configured         |
 
 Everything else serves the frontend (SPA fallback).
 
@@ -23,33 +29,49 @@ Everything else serves the frontend (SPA fallback).
 
 Copy `.env.example` to `.env`. Vars:
 
-- `WINTWEALTH_AUTH_TOKEN` — the `X-AUTH-TOKEN` sent to the report API.
+- `WINTWEALTH_AUTH_TOKEN` — the `X-AUTH-TOKEN` sent to the report API. **Required.**
+- `WINTWEALTH_ADMIN_TOKEN` — separate token for account actions (falls back to the reports token).
 - `AGENT_ID` — query param `agentId` (default `333`).
 - `WINTWEALTH_BASE_URL` — report API host (default `https://elb.api.wintwealth.com`).
-- `PORT` — defaults to `3000` (Render sets this automatically).
+- `WINTWEALTH_API_URL` — host used by ACF Link (default `https://api.wintwealth.com`).
+- `DOWNLOAD_ALLOWED_HOSTS` — optional extra hosts `/api/download` may fetch from.
+- `PORT` — Bun server only; defaults to `3000`.
 
-## Run locally
+## Deploy to Vercel
+
+`vercel.json` builds the Vite app to `frontend/dist` and deploys every file in
+`api/` as a serverless function.
+
+1. Vercel → **Add New → Project**, import this repo. Leave the framework preset
+   as **Other** — `vercel.json` supplies the build and output settings.
+2. **Settings → Environment Variables**: add `WINTWEALTH_AUTH_TOKEN` and
+   `WINTWEALTH_ADMIN_TOKEN` for Production (and Preview, if you use previews).
+3. Deploy, then open `/api/health`. It reports `reportsTokenConfigured` /
+   `adminTokenConfigured` — if either is `false`, the env var did not reach the
+   function and reports will fail. Env var changes need a **redeploy** to apply.
+
+Report generation is allowed 60s (`functions.maxDuration` in `vercel.json`);
+raise it only on a plan that permits longer durations.
+
+## Run locally / deploy to Render (Bun)
 
 ```bash
 bun install
 bun run build     # builds the frontend into ./public
-bun run start     # serves on http://localhost:3000
+bun run start     # serves API + frontend on http://localhost:3000
 ```
 
-`bun run dev` runs just the server with reload (build the frontend first).
+`bun run dev` runs just the server with reload; `cd frontend && bun run dev`
+runs Vite with `/api` proxied to port 3000.
 
-## Deploy to Render (native Bun)
+For Render: **New → Blueprint** against this repo (uses `render.yaml`), then set
+`WINTWEALTH_AUTH_TOKEN` and `WINTWEALTH_ADMIN_TOKEN` in the dashboard.
 
-Render's Node runtime includes Bun, so no Docker is needed.
+## Why downloads go through `/api/download`
 
-1. Push this repo to GitHub.
-2. Render → **New → Blueprint**, select the repo (uses `render.yaml`), or create a
-   **Web Service** manually with:
-   - **Build Command:** `bun install && bun run build`
-   - **Start Command:** `bun run start`
-   - **Health Check Path:** `/api/health`
-3. Set the env var `WINTWEALTH_AUTH_TOKEN` in the dashboard. `AGENT_ID` and
-   `WINTWEALTH_BASE_URL` have defaults.
-4. Deploy. A successful boot logs `report-downloader (bun) listening on port …`.
-
-Free tier works (nothing is persisted server-side); it cold-starts after idle.
+The upstream link is on another origin, so a browser ignores the `download`
+attribute on it and simply navigates — the user lands on (or away to) the file
+host and loses the app. Proxying through our own origin lets us set
+`Content-Disposition: attachment`, so the file saves in place. The URL is
+validated against a host allowlist before being fetched, so the endpoint cannot
+be used as an open proxy.

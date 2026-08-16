@@ -115,10 +115,17 @@ dist
 # Built frontend (generated at build time, served from /public)
 /public
 
+# Vercel
+.vercel
+
 # Docker — not used for deploy (native Bun app); keep out of git
 Dockerfile
 .dockerignore
 docker-compose.yml
 docker-compose.override.yml
 *.local.yml
+
+# macOS
+.DS_Store
+**/.DS_Store
 

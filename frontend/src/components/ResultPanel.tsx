@@ -1,3 +1,4 @@
+import { downloadHref, reportFilename } from "../lib/api";
 import { HistoryEntry } from "../lib/history";
 
 interface Props {
@@ -9,6 +10,7 @@ export default function ResultPanel({ entry, onToast }: Props) {
   if (!entry) return null;
 
   if (entry.status === "success") {
+    const filename = entry.filename ?? reportFilename(entry.reportType, entry.userId);
     return (
       <div className="card mt-4 flex flex-col items-start gap-3 border-accent-light bg-accent-light/40 p-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -16,7 +18,12 @@ export default function ResultPanel({ entry, onToast }: Props) {
           <p className="text-sm font-medium text-ink">{entry.message}</p>
         </div>
         {entry.downloadUrl && (
-          <a href={entry.downloadUrl} onClick={() => onToast("Download started")} className="btn-accent">
+          <a
+            href={downloadHref(entry.downloadUrl, filename)}
+            download={filename}
+            onClick={() => onToast("Download started")}
+            className="btn-accent"
+          >
             Download Excel
           </a>
         )}

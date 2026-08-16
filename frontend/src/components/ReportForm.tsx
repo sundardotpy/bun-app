@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { generateReport, ReportType } from "../lib/api";
+import { ApiError, generateReport, reportFilename, ReportType, triggerDownload } from "../lib/api";
 import { addHistoryEntry, HistoryEntry } from "../lib/history";
 
 interface Props {
@@ -20,20 +20,34 @@ export default function ReportForm({ onResult, onToast }: Props) {
     onToast("Fetching report…");
     try {
       const res = await generateReport(reportType, trimmed);
+      const filename = reportFilename(reportType, trimmed);
       const entry = addHistoryEntry({
         reportType,
         userId: trimmed,
         status: res.success ? "success" : res.accountDeletionSuspected ? "account_deletion" : "error",
         message: res.message,
         downloadUrl: res.downloadUrl,
+        filename: res.downloadUrl ? filename : undefined,
       });
       onResult(entry[0]);
       if (res.success && res.downloadUrl) {
+        // The whole point of the app: the file saves itself as soon as the API
+        // answers, without the user leaving the page.
+        triggerDownload(res.downloadUrl, filename);
         onToast("Download started");
-        window.location.href = res.downloadUrl;
       } else {
         onToast(res.message);
       }
+    } catch (err) {
+      const message = err instanceof ApiError ? err.message : "Something went wrong. Please try again.";
+      const entry = addHistoryEntry({
+        reportType,
+        userId: trimmed,
+        status: "error",
+        message,
+      });
+      onResult(entry[0]);
+      onToast(message);
     } finally {
       setLoading(null);
     }

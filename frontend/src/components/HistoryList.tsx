@@ -1,3 +1,4 @@
+import { downloadHref, reportFilename } from "../lib/api";
 import { HistoryEntry } from "../lib/history";
 
 const STATUS_LABEL: Record<HistoryEntry["status"], string> = {
@@ -54,7 +55,11 @@ export default function HistoryList({ entries, onToast }: Props) {
                 </span>
                 {entry.status === "success" && entry.downloadUrl && (
                   <a
-                    href={entry.downloadUrl}
+                    href={downloadHref(
+                      entry.downloadUrl,
+                      entry.filename ?? reportFilename(entry.reportType, entry.userId)
+                    )}
+                    download={entry.filename ?? reportFilename(entry.reportType, entry.userId)}
                     onClick={() => onToast("Download started")}
                     className="text-xs font-semibold text-accent-dark hover:underline"
                   >
