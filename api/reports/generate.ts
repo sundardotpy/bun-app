@@ -2,8 +2,9 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { generateReport } from "../../src/services/proxy";
 import { parseGenerateInput } from "../../src/validate";
 import { readBody } from "../_body";
+import { guard } from "../_guard";
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default guard(async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST") {
     return res.status(405).json({ success: false, message: "Method not allowed." });
   }
@@ -22,4 +23,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const result = await generateReport(parsed.value.reportType, parsed.value.userId);
   return res.status(200).json(result);
-}
+});

@@ -21,11 +21,12 @@ export default function ReportForm({ onResult, onToast }: Props) {
     try {
       const res = await generateReport(reportType, trimmed);
       const filename = reportFilename(reportType, trimmed);
+      const message = res.detail ? `${res.message} (${res.detail})` : res.message;
       const entry = addHistoryEntry({
         reportType,
         userId: trimmed,
         status: res.success ? "success" : res.accountDeletionSuspected ? "account_deletion" : "error",
-        message: res.message,
+        message,
         downloadUrl: res.downloadUrl,
         filename: res.downloadUrl ? filename : undefined,
       });
@@ -36,7 +37,7 @@ export default function ReportForm({ onResult, onToast }: Props) {
         triggerDownload(res.downloadUrl, filename);
         onToast("Download started");
       } else {
-        onToast(res.message);
+        onToast(message);
       }
     } catch (err) {
       const message = err instanceof ApiError ? err.message : "Something went wrong. Please try again.";

@@ -5,6 +5,9 @@ export interface GenerateReportResponse {
   downloadUrl?: string;
   message: string;
   accountDeletionSuspected?: boolean;
+  // Present only when the server hit an unexpected error; carries the underlying
+  // reason so the UI can show something more useful than "try again".
+  detail?: string;
 }
 
 export class ApiError extends Error {}

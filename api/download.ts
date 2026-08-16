@@ -2,8 +2,9 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { fetchReportFile, parseDownloadUrl, safeFilename } from "../src/services/download";
+import { guard } from "./_guard";
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default guard(async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "GET") {
     return res.status(405).json({ success: false, message: "Method not allowed." });
   }
@@ -38,4 +39,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Stream straight through — avoids buffering the whole workbook in memory and
   // sidesteps the serverless response size limit for buffered responses.
   await pipeline(Readable.fromWeb(upstream.body as any), res);
-}
+});
