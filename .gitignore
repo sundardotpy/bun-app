@@ -112,18 +112,12 @@ dist
 # TernJS port file
 .tern-port
 
-# Built frontend (generated at build time, served from /public)
-/public
+# Next.js
+.next
+next-env.d.ts
 
 # Vercel
 .vercel
-
-# Docker — not used for deploy (native Bun app); keep out of git
-Dockerfile
-.dockerignore
-docker-compose.yml
-docker-compose.override.yml
-*.local.yml
 
 # macOS
 .DS_Store

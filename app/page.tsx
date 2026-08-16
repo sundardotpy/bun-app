@@ -1,17 +1,21 @@
+"use client";
+
 import { useEffect, useState } from "react";
-import Header from "../components/Header";
-import ReportForm from "../components/ReportForm";
-import ResultPanel from "../components/ResultPanel";
-import HistoryList from "../components/HistoryList";
-import Toast from "../components/Toast";
-import { useToast } from "../hooks/useToast";
-import { getHistory, HistoryEntry } from "../lib/history";
+import Header from "@/components/Header";
+import ReportForm from "@/components/ReportForm";
+import ResultPanel from "@/components/ResultPanel";
+import HistoryList from "@/components/HistoryList";
+import Toast from "@/components/Toast";
+import { useToast } from "@/lib/useToast";
+import { getHistory, HistoryEntry } from "@/lib/history";
 
 export default function Home() {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [lastResult, setLastResult] = useState<HistoryEntry | null>(null);
   const { toastMessage, showToast } = useToast();
 
+  // Read on mount rather than during render: localStorage does not exist while
+  // the page is being server-rendered.
   useEffect(() => {
     setHistory(getHistory());
   }, []);

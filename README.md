@@ -1,17 +1,31 @@
-# Report Downloader
+# CX User Operations
 
-Enter a user ID, pull the Master or Taxation report as an Excel file. The server
-proxies the internal WintWealth API server-side (so the host and `X-AUTH-TOKEN`
+Enter a user ID, download that user's Master or Taxation report as an Excel file.
+The server proxies the internal WintWealth API (so the host and `X-AUTH-TOKEN`
 never reach the browser), then streams the resulting file back through
-`/api/download` so it saves as an attachment the moment the API responds.
-Recent requests are kept in the browser (localStorage).
+`/api/download` so it saves as soon as the API responds. Recent requests are
+kept in the browser (localStorage).
 
-- **Frontend:** React + Vite + Tailwind.
-- **Config:** no database, no admin login — token, agentId and base URL come from environment variables.
-- **Deploy targets:** Vercel (serverless functions in `api/`) *or* Render / local (single Bun process in `src/`).
+**Stack:** Next.js (App Router) + React + Tailwind, TypeScript. One app, no
+database, no build config — Vercel detects and builds it with zero setup.
 
-Both deployments share the same logic in `src/` — `src/index.ts` is the Bun
-entrypoint, `api/*.ts` are thin Vercel wrappers around the same modules.
+## Layout
+
+```
+app/
+  page.tsx                       the single page (client component)
+  layout.tsx                     document shell, icon + manifest metadata
+  api/reports/generate/route.ts  proxies the report request
+  api/download/route.ts          streams the file back as an attachment
+  api/health/route.ts            reports whether env vars arrived
+components/                      Header, ReportForm, ResultPanel, HistoryList, Toast
+lib/
+  reports.ts                     upstream call — server only
+  download.ts                    download URL allowlist
+  api.ts                         browser-side client
+  history.ts, useToast.ts
+public/                          favicon + app icons + manifest
+```
 
 ## Endpoints
 
@@ -21,53 +35,46 @@ entrypoint, `api/*.ts` are thin Vercel wrappers around the same modules.
 | GET    | `/api/download`         | Stream that link back as an `attachment` download |
 | GET    | `/api/health`           | Health check + whether the token is configured    |
 
-Everything else serves the frontend (SPA fallback).
-
 ## Environment
 
-Copy `.env.example` to `.env`. Vars:
+Copy `.env.example` to `.env.local` (Next.js reads that automatically in dev):
 
 - `WINTWEALTH_AUTH_TOKEN` — the `X-AUTH-TOKEN` sent to the report API. **Required.**
 - `AGENT_ID` — query param `agentId` (default `333`).
 - `WINTWEALTH_BASE_URL` — report API host (default `https://elb.api.wintwealth.com`).
 - `DOWNLOAD_ALLOWED_HOSTS` — optional extra hosts `/api/download` may fetch from.
-- `PORT` — Bun server only; defaults to `3000`.
+
+None of these are `NEXT_PUBLIC_`, so they stay on the server and never ship to
+the browser bundle.
+
+## Run locally
+
+```bash
+npm install
+npm run dev
+```
+
+Then open http://localhost:3000. `npm run build && npm start` runs the
+production build; `npm run lint` typechecks.
 
 ## Deploy to Vercel
 
-`vercel.json` builds the Vite app to `frontend/dist` and deploys every file in
-`api/` as a serverless function.
-
-1. Vercel → **Add New → Project**, import this repo. Leave the framework preset
-   as **Other** — `vercel.json` supplies the build and output settings.
+1. Vercel → **Add New → Project**, import this repo. It is detected as Next.js —
+   accept the defaults, there is nothing to configure.
 2. **Settings → Environment Variables**: add `WINTWEALTH_AUTH_TOKEN` for
    Production (and Preview, if you use previews).
-3. Deploy, then open `/api/health`. It reports `reportsTokenConfigured` — if
-   that is `false`, the env var did not reach the function and reports will
-   fail. Env var changes need a **redeploy** to apply.
+3. Deploy, then open `/api/health`. If `reportsTokenConfigured` is `false` the
+   env var did not reach the server — env var changes need a **redeploy** to
+   take effect.
 
-Report generation is allowed 60s (`functions.maxDuration` in `vercel.json`);
-raise it only on a plan that permits longer durations.
-
-## Run locally / deploy to Render (Bun)
-
-```bash
-bun install
-bun run build     # builds the frontend into ./public
-bun run start     # serves API + frontend on http://localhost:3000
-```
-
-`bun run dev` runs just the server with reload; `cd frontend && bun run dev`
-runs Vite with `/api` proxied to port 3000.
-
-For Render: **New → Blueprint** against this repo (uses `render.yaml`), then set
-`WINTWEALTH_AUTH_TOKEN` in the dashboard.
+Report generation is allowed 60s via `export const maxDuration` in the route
+files; raise it only on a plan that permits longer durations.
 
 ## Why downloads go through `/api/download`
 
-The upstream link is on another origin, so a browser ignores the `download`
-attribute on it and simply navigates — the user lands on (or away to) the file
-host and loses the app. Proxying through our own origin lets us set
-`Content-Disposition: attachment`, so the file saves in place. The URL is
-validated against a host allowlist before being fetched, so the endpoint cannot
-be used as an open proxy.
+The upstream link is on another origin, so the browser ignores the `download`
+attribute on it and simply navigates — the user ends up on the file host and
+loses the app. Proxying through our own origin lets us set
+`Content-Disposition: attachment`, so the file saves in place while the page
+stays put. The URL is checked against a host allowlist and must be `https`
+before it is fetched, so the endpoint cannot be used as an open proxy.

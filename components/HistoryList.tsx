@@ -1,5 +1,5 @@
-import { downloadHref, reportFilename } from "../lib/api";
-import { HistoryEntry } from "../lib/history";
+import { downloadHref, reportFilename } from "@/lib/api";
+import { HistoryEntry } from "@/lib/history";
 
 const STATUS_LABEL: Record<HistoryEntry["status"], string> = {
   success: "Success",

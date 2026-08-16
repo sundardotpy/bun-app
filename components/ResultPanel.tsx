@@ -1,5 +1,5 @@
-import { downloadHref, reportFilename } from "../lib/api";
-import { HistoryEntry } from "../lib/history";
+import { downloadHref, reportFilename } from "@/lib/api";
+import { HistoryEntry } from "@/lib/history";
 
 interface Props {
   entry: HistoryEntry | null;

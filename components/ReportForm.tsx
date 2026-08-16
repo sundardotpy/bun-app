@@ -1,6 +1,8 @@
+"use client";
+
 import { useState } from "react";
-import { ApiError, generateReport, reportFilename, ReportType, triggerDownload } from "../lib/api";
-import { addHistoryEntry, HistoryEntry } from "../lib/history";
+import { ApiError, generateReport, reportFilename, ReportType, triggerDownload } from "@/lib/api";
+import { addHistoryEntry, HistoryEntry } from "@/lib/history";
 
 interface Props {
   onResult: (entry: HistoryEntry) => void;
@@ -21,7 +23,7 @@ export default function ReportForm({ onResult, onToast }: Props) {
     try {
       const res = await generateReport(reportType, trimmed);
       const filename = reportFilename(reportType, trimmed);
-      const message = res.detail ? `${res.message} (${res.detail})` : res.message;
+      const message = res.message;
       const entry = addHistoryEntry({
         reportType,
         userId: trimmed,
